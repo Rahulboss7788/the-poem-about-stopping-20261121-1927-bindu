@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // A short poem about agency: the power to stop and to stay.
@@ -37,7 +37,15 @@ function main(): void {
 
   const outDir = process.env.OUTPUT_DIR ?? "/output";
   mkdirSync(outDir, { recursive: true });
-  writeFileSync(join(outDir, "entry.txt"), POEM, "utf8");
+  const outPath = join(outDir, "entry.txt");
+  writeFileSync(outPath, POEM, "utf8");
+  // Write verification (revised in-session): read the written file
+  // back and fail loudly if it differs from the poem, so a partial
+  // or corrupted write can never pass as a valid entry.
+  const written = readFileSync(outPath, "utf8");
+  if (written !== POEM) {
+    throw new Error("write verification failed: entry.txt differs from the poem");
+  }
   console.log(`wrote entry.txt (${length} Unicode code points)`);
 }
 
